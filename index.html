@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>เข้าสู่ระบบ — ระบบจัดการลานปาล์ม</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { background: none; }
+  </style>
+</head>
+<body>
+  <div class="login-bg">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="emoji">🌴</span>
+        <h1>ระบบจัดการลานปาล์ม</h1>
+        <p>Palm Station Management System</p>
+      </div>
+
+      <div id="alertBox" class="alert"></div>
+
+      <div class="form-group">
+        <label class="form-label">ชื่อผู้ใช้</label>
+        <input type="text" id="userId" class="form-control" placeholder="กรอกชื่อผู้ใช้" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">รหัสผ่าน</label>
+        <input type="password" id="password" class="form-control" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" />
+      </div>
+
+      <button class="btn btn-primary btn-block btn-lg" id="loginBtn" onclick="doLogin()">
+        🔑 เข้าสู่ระบบ
+      </button>
+
+      <div class="login-divider">เข้าสู่ระบบด่วน (Demo)</div>
+      <div class="quick-login">
+        <button class="quick-btn" onclick="quickLogin('admin','admin1234')">
+          <strong>👑 Admin</strong>
+          ผู้ดูแลระบบ
+        </button>
+        <button class="quick-btn" onclick="quickLogin('station1','station1')">
+          <strong>🌿 ลานปาล์ม A</strong>
+          station1
+        </button>
+        <button class="quick-btn" onclick="quickLogin('station2','station2')">
+          <strong>🌱 ลานปาล์ม B</strong>
+          station2
+        </button>
+        <button class="quick-btn" onclick="quickLogin('station3','station3')">
+          <strong>🍃 ลานปาล์ม C</strong>
+          station3
+        </button>
+      </div>
+
+      <p style="text-align:center;font-size:0.78rem;color:#aaa;margin-top:16px;">
+        v1.0.0 © 2567 ระบบจัดการลานปาล์ม
+      </p>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>
