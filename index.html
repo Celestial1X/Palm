@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>เข้าสู่ระบบ — ระบบจัดการลานปาล์ม</title>
   <link rel="stylesheet" href="css/style.css" />
-  <style>
-    body { background: none; }
-  </style>
 </head>
 <body>
   <div class="login-bg">
@@ -53,13 +50,62 @@
         </button>
       </div>
 
-      <p style="text-align:center;font-size:0.78rem;color:#aaa;margin-top:16px;">
-        v1.0.0 © 2567 ระบบจัดการลานปาล์ม
-      </p>
+      <p class="version-tag">v2.0.0 © 2567 ระบบจัดการลานปาล์ม</p>
     </div>
   </div>
 
-  <script src="js/data.js"></script>
-  <script src="js/login.js"></script>
+  <script>
+  /* ====== DATA ====== */
+  const USERS = [
+    { id:'admin',    name:'ผู้ดูแลระบบ', role:'admin',   password:'admin1234', station:null },
+    { id:'station1', name:'ลานปาล์ม A',  role:'station', password:'station1',  station:'ST001' },
+    { id:'station2', name:'ลานปาล์ม B',  role:'station', password:'station2',  station:'ST002' },
+    { id:'station3', name:'ลานปาล์ม C',  role:'station', password:'station3',  station:'ST003' },
+  ];
+
+  const Auth = {
+    login(userId, password) {
+      const user = USERS.find(u => u.id === userId && u.password === password);
+      if (user) { localStorage.setItem('palmUser', JSON.stringify(user)); return user; }
+      return null;
+    }
+  };
+
+  function showAlert(el, type, msg) {
+    el.className = 'alert alert-' + type + ' show';
+    el.innerHTML = msg;
+    setTimeout(() => { el.className = 'alert'; }, 4000);
+  }
+
+  function doLogin() {
+    const alertBox = document.getElementById('alertBox');
+    const userId   = document.getElementById('userId').value.trim();
+    const password = document.getElementById('password').value;
+    if (!userId || !password) { showAlert(alertBox,'warning','⚠️ กรุณากรอกชื่อผู้ใช้และรหัสผ่าน'); return; }
+    const user = Auth.login(userId, password);
+    if (!user) { showAlert(alertBox,'danger','❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'); return; }
+    showAlert(alertBox,'success','✅ เข้าสู่ระบบสำเร็จ กำลังนำทาง...');
+    setTimeout(() => {
+      window.location.href = user.role === 'admin' ? 'pages/admin.html' : 'pages/station.html';
+    }, 700);
+  }
+
+  function quickLogin(id, pw) {
+    document.getElementById('userId').value = id;
+    document.getElementById('password').value = pw;
+    doLogin();
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  /* Auto-redirect if already logged in */
+  (function() {
+    const d = localStorage.getItem('palmUser');
+    if (d) {
+      const u = JSON.parse(d);
+      window.location.href = u.role === 'admin' ? 'pages/admin.html' : 'pages/station.html';
+    }
+  })();
+  </script>
 </body>
 </html>
