@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — ระบบจัดการลานปาล์ม</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a class="navbar-brand" href="#">
+    <span class="icon">🌴</span>
+    <span class="brand-text">ระบบจัดการลานปาล์ม</span>
+  </a>
+  <div class="navbar-right">
+    <div class="nav-user">
+      <span>ผู้ดูแลระบบ</span>
+      <span class="badge" style="background:var(--gold-500);color:var(--green-900);">👑 Admin</span>
+    </div>
+    <button class="btn-logout" onclick="Auth.logout()">ออกจากระบบ</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <div class="flex-between">
+      <div>
+        <h1 class="page-title">👑 แผงควบคุม Admin</h1>
+        <p class="page-subtitle">รวบรวมและสรุปข้อมูลจากทุกลานปาล์ม</p>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-accent" onclick="exportAll()">📥 Export ทั้งหมด</button>
+        <button class="btn btn-outline" onclick="refreshAll()">🔄 รีเฟรช</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY STATS -->
+  <div class="grid-3 mb-3" id="summaryStats"><!-- filled by JS --></div>
+
+  <!-- STATION SUMMARY CARDS -->
+  <div class="grid-3 mb-3" id="stationSummaryCards"><!-- filled by JS --></div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('tabPending',this)">
+      ⏳ รอตรวจสอบ <span id="pendingCount" class="badge" style="background:var(--gold-500);color:var(--green-900);margin-left:4px;">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('tabAll',this)">📋 รายการทั้งหมด</button>
+    <button class="tab-btn" onclick="switchTab('tabSummary',this)">📊 สรุปรายลาน</button>
+  </div>
+
+  <!-- TAB: PENDING -->
+  <div class="tab-pane active" id="tabPending">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">⏳ รายการรอการตรวจสอบ</span>
+        <button class="btn btn-primary btn-sm" onclick="approveAll()">✅ อนุมัติทั้งหมด</button>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>รหัส</th>
+                <th>ลาน</th>
+                <th>วันที่รับซื้อ</th>
+                <th>ชื่อเกษตรกร</th>
+                <th>เบอร์โทร</th>
+                <th>น้ำหนัก (กก.)</th>
+                <th>ราคา/กก.</th>
+                <th>จำนวนเงิน (บาท)</th>
+                <th>หมายเหตุ</th>
+                <th>บันทึกเมื่อ</th>
+                <th>การดำเนินการ</th>
+              </tr>
+            </thead>
+            <tbody id="pendingBody">
+              <tr><td colspan="11"><div class="empty-state"><div class="icon">✅</div><p>ไม่มีรายการรอตรวจสอบ</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: ALL -->
+  <div class="tab-pane" id="tabAll">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 รายการทั้งหมด</span>
+        <div class="flex-center gap-2" style="flex-wrap:wrap;">
+          <select id="filterStation" class="form-control" style="width:auto;padding:7px 12px;" onchange="renderAll()">
+            <option value="">— ทุกลาน —</option>
+            <option value="ST001">ลานปาล์ม A</option>
+            <option value="ST002">ลานปาล์ม B</option>
+            <option value="ST003">ลานปาล์ม C</option>
+          </select>
+          <select id="filterStatus" class="form-control" style="width:auto;padding:7px 12px;" onchange="renderAll()">
+            <option value="">— ทุกสถานะ —</option>
+            <option value="pending">รอตรวจสอบ</option>
+            <option value="approved">อนุมัติ</option>
+            <option value="rejected">ปฏิเสธ</option>
+          </select>
+          <button class="btn btn-accent btn-sm" onclick="exportFiltered()">📥 Export</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>รหัส</th>
+                <th>ลาน</th>
+                <th>วันที่รับซื้อ</th>
+                <th>ชื่อเกษตรกร</th>
+                <th>เบอร์โทร</th>
+                <th>น้ำหนัก (กก.)</th>
+                <th>ราคา/กก.</th>
+                <th>จำนวนเงิน (บาท)</th>
+                <th>สถานะ</th>
+                <th>บันทึกเมื่อ</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="allBody">
+              <tr><td colspan="11"><div class="empty-state"><div class="icon">📭</div><p>ยังไม่มีรายการ</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: SUMMARY -->
+  <div class="tab-pane" id="tabSummary">
+    <div id="summaryContent"><!-- filled by JS --></div>
+  </div>
+
+</div>
+
+<!-- REJECT MODAL -->
+<div id="rejectModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="card-header"><span class="card-title">❌ ปฏิเสธรายการ</span></div>
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label">เหตุผลการปฏิเสธ</label>
+        <textarea id="rejectReason" class="form-control" rows="3" placeholder="ระบุเหตุผล..."></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-danger" onclick="confirmReject()">ยืนยันปฏิเสธ</button>
+        <button class="btn btn-outline" onclick="closeRejectModal()">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== ALL SCRIPTS INLINE ====== -->
+<script>
+/* ─── DATA & AUTH ─── */
+const USERS = [
+  { id:'admin',    name:'ผู้ดูแลระบบ', role:'admin',   password:'admin1234', station:null },
+  { id:'station1', name:'ลานปาล์ม A',  role:'station', password:'station1',  station:'ST001' },
+  { id:'station2', name:'ลานปาล์ม B',  role:'station', password:'station2',  station:'ST002' },
+  { id:'station3', name:'ลานปาล์ม C',  role:'station', password:'station3',  station:'ST003' },
+];
+
+const STATIONS = {
+  ST001: { name:'ลานปาล์ม A', location:'อำเภอเมือง',  icon:'🌿' },
+  ST002: { name:'ลานปาล์ม B', location:'อำเภอท่าเรือ', icon:'🌱' },
+  ST003: { name:'ลานปาล์ม C', location:'อำเภอบ้านนา',  icon:'🍃' },
+};
+
+const Auth = {
+  logout() { localStorage.removeItem('palmUser'); window.location.href = '../index.html'; },
+  current() { const d = localStorage.getItem('palmUser'); return d ? JSON.parse(d) : null; },
+  requireRole(role) {
+    const user = this.current();
+    if (!user) { window.location.href = '../index.html'; return null; }
+    if (user.role !== role) {
+      alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+      window.location.href = user.role === 'admin' ? 'admin.html' : 'station.html';
+      return null;
+    }
+    return user;
+  }
+};
+
+const Store = {
+  KEY:'palmData_v1', COUNTER_KEY:'palmCounter_v1',
+  _nextId() { let c=parseInt(localStorage.getItem(this.COUNTER_KEY)||'0')+1; localStorage.setItem(this.COUNTER_KEY,c); return 'REC'+String(c).padStart(5,'0'); },
+  load()     { const d=localStorage.getItem(this.KEY); return d?JSON.parse(d):[]; },
+  save(r)    { localStorage.setItem(this.KEY,JSON.stringify(r)); },
+  update(id,upd) {
+    const records=this.load(); const idx=records.findIndex(r=>r.id===id);
+    if(idx!==-1){records[idx]={...records[idx],...upd,updatedAt:new Date().toISOString()};this.save(records);return records[idx];}
+    return null;
+  },
+  getByStation(sid){ return this.load().filter(r=>r.stationId===sid); },
+  getAll()    { return this.load(); },
+  getPending(){ return this.load().filter(r=>r.status==='pending'); },
+  getSummary(){
+    const records=this.load().filter(r=>r.status==='approved');
+    const summary={};
+    Object.keys(STATIONS).forEach(sid=>{ summary[sid]={count:0,totalWeight:0,totalAmount:0}; });
+    records.forEach(r=>{ if(summary[r.stationId]){ summary[r.stationId].count++; summary[r.stationId].totalWeight+=parseFloat(r.weight)||0; summary[r.stationId].totalAmount+=parseFloat(r.amount)||0; } });
+    return summary;
+  },
+};
+
+/* ─── HELPERS ─── */
+function formatDate(s)     { if(!s)return'-'; const d=new Date(s); return d.toLocaleDateString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit'}); }
+function formatDateTime(s) { if(!s)return'-'; const d=new Date(s); return d.toLocaleDateString('th-TH')+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}); }
+function formatNumber(n)   { return parseFloat(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function showAlert(el,type,msg){ el.className='alert alert-'+type+' show'; el.innerHTML=msg; setTimeout(()=>{el.className='alert';},4000); }
+
+function statusBadge(status){
+  const map={pending:['badge-pending','⏳ รอตรวจสอบ'],approved:['badge-approved','✅ อนุมัติ'],rejected:['badge-rejected','❌ ปฏิเสธ']};
+  const [cls,label]=map[status]||['',status];
+  return `<span class="badge-status ${cls}">${label}</span>`;
+}
+
+function exportToExcel(records,filename){
+  if(!records||records.length===0){alert('ไม่มีข้อมูลสำหรับ Export');return;}
+  const headers=['รหัส','ลาน','วันที่รับซื้อ','ชื่อเกษตรกร','เบอร์โทร','น้ำหนัก (กก.)','ราคา/กก.','จำนวนเงิน (บาท)','หมายเหตุ','สถานะ','วันที่บันทึก'];
+  const rows=records.map(r=>[r.id,STATIONS[r.stationId]?.name||r.stationId,r.purchaseDate,r.farmerName,r.farmerPhone||'',parseFloat(r.weight||0),parseFloat(r.pricePerKg||0),parseFloat(r.amount||0),r.note||'',r.status==='approved'?'อนุมัติ':r.status==='rejected'?'ปฏิเสธ':'รอตรวจสอบ',formatDateTime(r.createdAt)]);
+  const BOM='\uFEFF';
+  const csv=[headers,...rows].map(row=>row.map(c=>{const s=String(c??'');return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;}).join(',')).join('\n');
+  const blob=new Blob([BOM+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+/* ─── ADMIN LOGIC ─── */
+let rejectTargetId = null;
+
+document.addEventListener('DOMContentLoaded',()=>{
+  Auth.requireRole('admin');
+  refreshAll();
+});
+
+function refreshAll(){ renderSummaryStats(); renderStationCards(); renderPending(); renderAll(); renderSummaryTab(); }
+
+function renderSummaryStats(){
+  const all=Store.getAll();
+  const approved=all.filter(r=>r.status==='approved');
+  const pending=all.filter(r=>r.status==='pending');
+  const totalWeight=approved.reduce((s,r)=>s+parseFloat(r.weight||0),0);
+  const totalAmount=approved.reduce((s,r)=>s+parseFloat(r.amount||0),0);
+  document.getElementById('summaryStats').innerHTML=`
+    <div class="stat-card">
+      <div class="stat-icon blue">📋</div>
+      <div class="stat-info"><div class="stat-label">รายการทั้งหมด</div>
+        <div class="stat-value">${all.length} <span class="stat-unit">รายการ</span></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon orange">⏳</div>
+      <div class="stat-info"><div class="stat-label">รอตรวจสอบ</div>
+        <div class="stat-value">${pending.length} <span class="stat-unit">รายการ</span></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">💰</div>
+      <div class="stat-info"><div class="stat-label">ยอดเงินรวม (อนุมัติ)</div>
+        <div class="stat-value" style="font-size:1.3rem">฿${formatNumber(totalAmount)}</div></div>
+    </div>
+  `;
+}
+
+function renderStationCards(){
+  const summary=Store.getSummary();
+  document.getElementById('stationSummaryCards').innerHTML=Object.entries(STATIONS).map(([sid,st])=>{
+    const s=summary[sid];
+    return `
+      <div class="stat-card" style="flex-direction:column;align-items:flex-start;gap:12px;">
+        <div class="flex-between" style="width:100%">
+          <div class="flex-center gap-2">
+            <div class="stat-icon green" style="width:40px;height:40px;font-size:1.3rem;">${st.icon}</div>
+            <div>
+              <div style="font-weight:700;color:var(--green-800);font-size:0.95rem">${st.name}</div>
+              <div style="font-size:0.75rem;color:var(--gray-500)">${st.location}</div>
+            </div>
+          </div>
+        </div>
+        <div style="width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:var(--green-50);border-radius:8px;padding:8px 10px;">
+            <div style="font-size:0.72rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em">รายการ</div>
+            <div style="font-weight:700;font-size:1.15rem;color:var(--green-800)">${s.count}</div>
+          </div>
+          <div style="background:var(--gold-100);border-radius:8px;padding:8px 10px;">
+            <div style="font-size:0.72rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em">น้ำหนัก (กก.)</div>
+            <div style="font-weight:700;font-size:1.05rem;color:var(--green-800)">${formatNumber(s.totalWeight)}</div>
+          </div>
+          <div style="background:var(--green-100,#c8edda);border-radius:8px;padding:8px 10px;grid-column:span 2;">
+            <div style="font-size:0.72rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em">ยอดเงินรวม (บาท)</div>
+            <div style="font-weight:700;font-size:1.2rem;color:var(--green-700)">฿${formatNumber(s.totalAmount)}</div>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" style="width:100%" onclick="exportStation('${sid}')">📥 Export ${st.name}</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderPending(){
+  const pending=Store.getPending().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  document.getElementById('pendingCount').textContent=pending.length;
+  const tbody=document.getElementById('pendingBody');
+  if(!pending.length){ tbody.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="icon">✅</div><p>ไม่มีรายการรอตรวจสอบ</p></div></td></tr>`; return; }
+  tbody.innerHTML=pending.map(r=>`
+    <tr>
+      <td><code style="font-size:0.75rem;color:#666;background:#f5f5f5;padding:2px 6px;border-radius:4px;">${r.id}</code></td>
+      <td><strong>${STATIONS[r.stationId]?.icon||''} ${STATIONS[r.stationId]?.name||r.stationId}</strong></td>
+      <td>${r.purchaseDate}</td>
+      <td style="font-weight:600">${r.farmerName}</td>
+      <td>${r.farmerPhone||'-'}</td>
+      <td class="text-right">${formatNumber(r.weight)}</td>
+      <td class="text-right">${formatNumber(r.pricePerKg)}</td>
+      <td class="text-right fw-bold">฿${formatNumber(r.amount)}</td>
+      <td>${r.note||'-'}</td>
+      <td style="white-space:nowrap;font-size:0.8rem;color:var(--gray-500)">${formatDateTime(r.createdAt)}</td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-sm" onclick="approve('${r.id}')">✅</button>
+          <button class="btn btn-danger btn-sm" onclick="openReject('${r.id}')">❌</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderAll(){
+  const fStn=document.getElementById('filterStation').value;
+  const fSts=document.getElementById('filterStatus').value;
+  let records=Store.getAll().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if(fStn) records=records.filter(r=>r.stationId===fStn);
+  if(fSts) records=records.filter(r=>r.status===fSts);
+  const tbody=document.getElementById('allBody');
+  if(!records.length){ tbody.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="icon">📭</div><p>ไม่พบรายการ</p></div></td></tr>`; return; }
+  tbody.innerHTML=records.map(r=>`
+    <tr>
+      <td><code style="font-size:0.75rem;color:#666;background:#f5f5f5;padding:2px 6px;border-radius:4px;">${r.id}</code></td>
+      <td>${STATIONS[r.stationId]?.icon||''} ${STATIONS[r.stationId]?.name||r.stationId}</td>
+      <td>${r.purchaseDate}</td>
+      <td style="font-weight:600">${r.farmerName}</td>
+      <td>${r.farmerPhone||'-'}</td>
+      <td class="text-right">${formatNumber(r.weight)}</td>
+      <td class="text-right">${formatNumber(r.pricePerKg)}</td>
+      <td class="text-right fw-bold">฿${formatNumber(r.amount)}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="white-space:nowrap;font-size:0.8rem;color:var(--gray-500)">${formatDateTime(r.createdAt)}</td>
+      <td>${r.status==='pending'?`<div class="btn-group"><button class="btn btn-primary btn-sm" onclick="approve('${r.id}')">✅</button><button class="btn btn-danger btn-sm" onclick="openReject('${r.id}')">❌</button></div>`:''}</td>
+    </tr>
+  `).join('');
+}
+
+function renderSummaryTab(){
+  const summary=Store.getSummary();
+  const all=Store.getAll().filter(r=>r.status==='approved');
+  const grandWeight=all.reduce((s,r)=>s+parseFloat(r.weight||0),0);
+  const grandAmount=all.reduce((s,r)=>s+parseFloat(r.amount||0),0);
+
+  let html=`
+    <div class="card mb-3">
+      <div class="card-header">
+        <span class="card-title">📊 สรุปรวมทุกลาน (เฉพาะรายการที่อนุมัติ)</span>
+        <button class="btn btn-accent btn-sm" onclick="exportAll()">📥 Export ทั้งหมด</button>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap"><table>
+          <thead><tr>
+            <th>ลานปาล์ม</th><th>พื้นที่</th>
+            <th class="text-right">จำนวนรายการ</th>
+            <th class="text-right">น้ำหนักรวม (กก.)</th>
+            <th class="text-right">ยอดเงินรวม (บาท)</th>
+            <th class="text-right">ราคาเฉลี่ย/กก.</th>
+          </tr></thead><tbody>
+  `;
+  Object.entries(STATIONS).forEach(([sid,st])=>{
+    const s=summary[sid];
+    const avgPrice=s.totalWeight>0?s.totalAmount/s.totalWeight:0;
+    html+=`<tr>
+      <td>${st.icon} <strong>${st.name}</strong></td>
+      <td style="color:var(--gray-500)">${st.location}</td>
+      <td class="text-right">${s.count}</td>
+      <td class="text-right">${formatNumber(s.totalWeight)}</td>
+      <td class="text-right fw-bold">฿${formatNumber(s.totalAmount)}</td>
+      <td class="text-right">${formatNumber(avgPrice)}</td>
+    </tr>`;
+  });
+  const grandAvg=grandWeight>0?grandAmount/grandWeight:0;
+  html+=`
+    <tr style="background:var(--green-50);font-weight:700;border-top:2px solid var(--green-400)">
+      <td colspan="2" style="color:var(--green-800)">🌴 รวมทั้งหมด</td>
+      <td class="text-right">${all.length}</td>
+      <td class="text-right">${formatNumber(grandWeight)}</td>
+      <td class="text-right" style="color:var(--green-700);font-size:1.05rem">฿${formatNumber(grandAmount)}</td>
+      <td class="text-right">${formatNumber(grandAvg)}</td>
+    </tr>
+  </tbody></table></div></div></div>
+  `;
+
+  html+=`<div class="grid-3">`;
+  Object.entries(STATIONS).forEach(([sid,st])=>{
+    const records=Store.getByStation(sid).filter(r=>r.status==='approved').slice(0,5);
+    html+=`
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">${st.icon} ${st.name}</span>
+          <button class="btn btn-outline btn-sm" onclick="exportStation('${sid}')">📥 Export</button>
+        </div>
+        <div class="card-body" style="padding:0;"><table>
+          <thead><tr><th>วันที่</th><th>เกษตรกร</th><th class="text-right">น้ำหนัก</th><th class="text-right">ยอดเงิน</th></tr></thead>
+          <tbody>
+            ${records.length===0
+              ?`<tr><td colspan="4"><div class="empty-state" style="padding:20px;"><p>ยังไม่มีข้อมูล</p></div></td></tr>`
+              :records.map(r=>`<tr>
+                  <td style="font-size:0.82rem">${r.purchaseDate}</td>
+                  <td style="font-weight:600;font-size:0.85rem">${r.farmerName}</td>
+                  <td class="text-right" style="font-size:0.82rem">${formatNumber(r.weight)}</td>
+                  <td class="text-right fw-bold" style="font-size:0.82rem">฿${formatNumber(r.amount)}</td>
+                </tr>`).join('')
+            }
+          </tbody>
+        </table></div>
+      </div>
+    `;
+  });
+  html+=`</div>`;
+  document.getElementById('summaryContent').innerHTML=html;
+}
+
+function approve(id){ Store.update(id,{status:'approved'}); refreshAll(); }
+
+function approveAll(){
+  const pending=Store.getPending();
+  if(!pending.length){alert('ไม่มีรายการรอตรวจสอบ');return;}
+  if(!confirm(`อนุมัติทั้งหมด ${pending.length} รายการ?`))return;
+  pending.forEach(r=>Store.update(r.id,{status:'approved'}));
+  refreshAll();
+}
+
+function openReject(id){
+  rejectTargetId=id;
+  document.getElementById('rejectReason').value='';
+  document.getElementById('rejectModal').classList.add('open');
+}
+
+function closeRejectModal(){
+  rejectTargetId=null;
+  document.getElementById('rejectModal').classList.remove('open');
+}
+
+function confirmReject(){
+  if(!rejectTargetId)return;
+  const reason=document.getElementById('rejectReason').value.trim();
+  Store.update(rejectTargetId,{status:'rejected',rejectReason:reason});
+  closeRejectModal(); refreshAll();
+}
+
+function exportAll(){ exportToExcel(Store.getAll(),'palm_ALL'); }
+
+function exportFiltered(){
+  const fStn=document.getElementById('filterStation').value;
+  const fSts=document.getElementById('filterStatus').value;
+  let records=Store.getAll();
+  if(fStn)records=records.filter(r=>r.stationId===fStn);
+  if(fSts)records=records.filter(r=>r.status===fSts);
+  const label=(fStn?STATIONS[fStn]?.name:'ALL')+(fSts?'_'+fSts:'');
+  exportToExcel(records,'palm_'+label);
+}
+
+function exportStation(sid){ exportToExcel(Store.getByStation(sid),'palm_'+sid); }
+
+function switchTab(tabId,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+  if(tabId==='tabSummary')renderSummaryTab();
+  if(tabId==='tabAll')renderAll();
+  if(tabId==='tabPending')renderPending();
+}
+</script>
+</body>
+</html>
